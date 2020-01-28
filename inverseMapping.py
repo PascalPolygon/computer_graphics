@@ -104,6 +104,9 @@ def inverseMapping(A, X, X_prime, img):
     outputHmg = open('outputHmg.txt', 'w')
     # outputMtrx = open('outputMtrx.txt', 'w')
     i = 0
+    srcImgRows = img.shape[0]
+    srcImgCols = img.shape[1]
+
     for x_prime in range(0, n_rows):
         for y_prime in range(0, n_cols):
             dstMatrx = np.array([[x_prime],
@@ -121,7 +124,7 @@ def inverseMapping(A, X, X_prime, img):
                 print(int(srcMtrx[0]), file=outputHmg)
                 i += 1
 
-            # if isWithinBoundaries(srcMtrx[0], srcMtrx[1], n_rows, n_cols) :
+        if isWithinBoundaries(srcMtrx[0], srcMtrx[1], srcImgRows, srcImgCols):
             dstImg[x_prime, y_prime, 0] = img[int(
                 srcMtrx[0]), int(srcMtrx[1]), 0]
             dstImg[x_prime, y_prime, 1] = img[int(
