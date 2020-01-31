@@ -1,0 +1,2 @@
+cargo:rustc-env=TYPENUM_BUILD_OP=/home/pascal/computer_graphics/rust/iverse_mapping/target/debug/build/typenum-5e0b6d5a63b6dd1f/out/consts.rs
+cargo:rustc-env=TYPENUM_BUILD_CONSTS=/home/pascal/computer_graphics/rust/iverse_mapping/target/debug/build/typenum-5e0b6d5a63b6dd1f/out/op.rs
