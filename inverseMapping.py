@@ -11,13 +11,30 @@ import imageio
 import numpy as np
 from IPython import get_ipython
 
+# %% [markdown]
+# # Inverse Mapping
+
 # %%
-# f = misc.face(); #face of a raccoon offered my misc module
-#img = imageio.imread('imageio:astronaut.png')
-# afroImg = imageio.imread('/home/pascal/computer_graphics/santa-fung-afro-007.jpg')
-afroImg = imageio.imread('/home/pascal/Pictures/santa-fung-afro-007.jpg')
+print("Hello World")
+
+
+# %%
+# Auth: Mawaba P. DAO
+# 01/30/2020
+# Florida Institute of Technology
+# Computer Graphics: CSE5280 (DR.Ribeiro)
+# Affine transformation:
+#   Software takes in a source image, marks source triangle
+#   and a destination triangle on the image, computes transformation matrix from
+#   source to triangle to dest triangle and applies the transformation
+#   to every pixel to obtain the transformed image.
+# other imports
+
+
+# %%
+afroImg = imageio.imread(
+    '/home/pascal/computer_graphics/santa-fung-afro-007.jpg')
 print(afroImg.shape)
-#imageio.imwrite('face.png', f);
 
 
 # %%
@@ -41,7 +58,7 @@ def estimateAffine(X, X_prime):
         [X[2][0], X[2][1], 1, 0, 0, 0],
         [0, 0, 0, X[2][0], X[2][1], 1]
     ])  # Source matrix represneted with 3 points homogenously (eq.7)
-    # b = np.array([X_prime[0][0], X_prime[0][1], X_prime[1][0], X_prime[1][1], X_prime[2][0], X_prime[2][1]])
+
     b = np.array([[X_prime[0][0]],
                   [X_prime[0][1]],
                   [X_prime[1][0]],
@@ -56,11 +73,12 @@ def estimateAffine(X, X_prime):
     I = np.identity(6)
     print(np.identity(6))
     a = np.dot(M_inv, b)  # Compute transformation coefficients
+    print("Transformation coefficients: ")
     print(a)
     a = homogenize3(a)
     return a
 
-    # Attempt to make sure that inverse result is accurate
+    # TODO: make sure that inverse result is accurate
     # by comparing M identity to perfect identiy matrix (currently not working)
     # if np.allclose(M,I,1,1) :
     #     print('Good identity')
@@ -84,56 +102,73 @@ def getDstImageSize(X_prime):
 
 
 # %%
-def isWithinBoundaries(x, y, nRows, nCols):
-    # Return True if (x,y) is within the boundaries of matrix A(nRows,nCols)
-
+def isWithinBoundaries(x, y, nCols, nRows):
+    # Return True if (x,y) is within the boundaries of matrix sourceImage(nRows,nCols)
+    # CompAring x to rows not cols because x in image from increments in y direction (reverse in matrix form)
     return (x >= 0 and x < nRows and y >= 0 and y < nCols)
 
 
 # %%
+# def verifyDstImg(dstImg, img):
+#     srcRedVals = open('srcRedVals.txt', 'w')
+#     print(img[:,:,0], file=srcRedVals) #Only get the first value of RGB ->(R)
+#     srcRedVals.close()
+#     imgFirstRed = img[0,0,0]
+#     dstImgFirstRed = dstImg[0,0,0]
+#     imgR_inv = np.linalg.inv(imgFirstRed)
+#     A = np.dot(imgR_inv, dstImgR)
+#     print(A)
+
+
+# %%
+def inverseTransformation(u, v, A_inv):
+    dstMatrx = np.array([[v],
+                         [u],
+                         [1]
+                         ])
+    srcHmgMtrx = np.dot(A_inv, dstMatrx)  # This matrix will be homogeneous
+    # get rid of the 1 and make it 2d vector
+    srcMtrx = np.array([srcHmgMtrx[0][0], srcHmgMtrx[1][0]])
+    x = int(srcMtrx[0])
+    y = int(srcMtrx[1])
+    return x, y
+
+
+# %%
 def inverseMapping(A, X, X_prime, img):
-    # Compute minimum size of destination image from destination triangle
-    n_rows, n_cols = getDstImageSize(X_prime)
-    dstImg = np.zeros((n_rows, n_cols, 3))
+    # n_rows, n_cols = getDstImageSize(X_prime) #Compute minimum size of destination image from destination triangle
+    # The line above is prescribed in the algorithm but it does not work
+    # If the image is displayed using n_rows and n_cols computed above it will be cropped
+    # Instead use dimesions of src image to display dst image
+    srcImgRows = img.shape[0]
+    srcImgCols = img.shape[1]
+    # Destination image should be computed using srcImg dimensions
+    dstImg = np.zeros((srcImgRows, srcImgCols, 3))
     print('Dest image shape: ')
     print(dstImg.shape)
     print('Inverse of transformation matrix: ')
     A_inv = np.linalg.inv(A)
     print(A_inv)
     print(img.shape)
-    outputHmg = open('outputHmg.txt', 'w')
+    # outputHmg = open('outputHmg.txt', 'w')
     # outputMtrx = open('outputMtrx.txt', 'w')
-    i = 0
-    srcImgRows = img.shape[0]
-    srcImgCols = img.shape[1]
+    print(srcImgRows)
+    print(srcImgCols)
 
-    for x_prime in range(0, n_rows):
-        for y_prime in range(0, n_cols):
-            dstMatrx = np.array([[x_prime],
-                                 [y_prime],
-                                 [1]
-                                 ])
-            # This matrix will be homogeneous
-            srcHmgMtrx = np.dot(A_inv, dstMatrx)
-            # get rid of the 1 and make it 2d vector
-            srcMtrx = np.array([srcHmgMtrx[0][0], srcHmgMtrx[1][0]])
-            if i < 100:
-                print('\nHomogeneous:', file=outputHmg)
-                print(srcHmgMtrx, file=outputHmg)
-                print('Non Homogeneous form (x rounded): ', file=outputHmg)
-                print(int(srcMtrx[0]), file=outputHmg)
-                i += 1
-
-        if isWithinBoundaries(srcMtrx[0], srcMtrx[1], srcImgRows, srcImgCols):
-            dstImg[x_prime, y_prime, 0] = img[int(
-                srcMtrx[0]), int(srcMtrx[1]), 0]
-            dstImg[x_prime, y_prime, 1] = img[int(
-                srcMtrx[0]), int(srcMtrx[1]), 1]
-            dstImg[x_prime, y_prime, 2] = img[int(
-                srcMtrx[0]), int(srcMtrx[1]), 2]
-    outputHmg.close()
-    # outputMtrx.close()
-    dstImg = 255 - dstImg  # Why do I have to take its negative?
+    for i in range(0, srcImgRows):
+        for j in range(0, srcImgCols):
+            # On 2nd interation, u=1 and v = 0 of position (1,0) on image
+            # put j 1'st because we want to map matrix pos 0,1 to image pixel 1,0
+            x, y = inverseTransformation(j, i, A_inv)
+            if isWithinBoundaries(x, y, srcImgCols, srcImgRows):
+                # Copy x first, not y, these pixels are still stored in a matrix
+                dstImg[i, j, 0] = img[x, y, 0]
+                # The reason copying y first works in example is because the image is a perfect square so it makes no difference
+                dstImg[i, j, 1] = img[x, y, 1]
+                dstImg[i, j, 2] = img[x, y, 2]
+    # outputHmg.close()
+    dstImg = 255 - dstImg  # I am not entirely sure why I have to do this, but if I don't it will paint the negative of the transormed image
+    # verifyDstImg(dstImg, img)
     return dstImg
 
 
@@ -164,7 +199,7 @@ class dstTri:
     class p3:
         x = 900
         y = 1000
-
+# Transform #2
 # class dstTri :
 #     class p1 :
 #         x = 600
@@ -175,6 +210,7 @@ class dstTri:
 #     class p3 :
 #         x = 900
 #         y = 1000
+# Transform #3 (Requires a larger size than source image to disaplay)
 # class dstTri :
 #     class p1 :
 #         x = 400
@@ -201,8 +237,12 @@ print('Transformation matrix: ')
 print(A)
 dstImg = inverseMapping(A, X, X_prime, afroImg)
 # plt.figure(figsize = (10,10))
-plt.figure()
+# plt.imshow(dstImg, interpolation='nearest', aspect='auto')
 plt.imshow(dstImg)
+# Red dots show src triangle, blue dots show destination triangle
+
+
+# %%
 
 
 # %%
