@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from vpython import*
 import random
+# from PIL import ImageGrab
 # from numbapro import vectorize
 scene = canvas()
 # sphere()
@@ -64,7 +65,7 @@ def animGradDesc(x, y, x_g, y_g, obs, R):
 
     for i in range(0, obs.shape[0]):
         cylinder(pos=vector(
-            obs[i][0]-50, 0, obs[i][1]-50), axis=vector(0, 20, 0), radius=R)
+            obs[i][0]-50, 0, obs[i][1]-50), axis=vector(0, 20, 0), radius=R-3)
 
     print("Finding minimum...")
     while C_total > 0.05:
@@ -100,12 +101,12 @@ def main():
 
     print(obs.shape)
 
-    for i in range(0, 14):
+    for i in range(0, 30):
         x_o = random.randint(0, 100)
         y_o = random.randint(0, 100)
         obs = np.append(obs, [[x_o, y_o]], axis=0)
 
-    animGradDesc(30, 30, x_g, y_g, obs, 2)
+    animGradDesc(0, 0, x_g, y_g, obs, 5)
     del X, Y  # free memory
 
 
