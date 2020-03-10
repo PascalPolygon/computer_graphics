@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from vpython import*
 import random
-# from PIL import ImageGrab
+from PIL import ImageGrab
 # from numbapro import vectorize
 scene = canvas()
 # sphere()
@@ -69,7 +69,7 @@ def animGradDesc(x, y, x_g, y_g, obs, R):
 
     print("Finding minimum...")
     while C_total > 0.05:
-        rate(70)
+        # rate(70)
 
         dx, dy = gradWithObst(x, y, x_g, y_g, obs, R)
 
@@ -82,6 +82,9 @@ def animGradDesc(x, y, x_g, y_g, obs, R):
         C = computeCost(x, y, x_g, y_g)
         C_obs = costWithObstables(x, y, obs, R)
         C_total = C + C_obs
+
+        im = ImageGrab.grab((220,180,1880,1200))  # screen box from (0,0)-(500,500)
+        im.save('./frames/img-'+str(100+i)+'.png')    
 
         i += 1
     print("Done!")
