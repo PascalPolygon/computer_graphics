@@ -212,8 +212,6 @@ def main():
     p5 = cylinder(pos=vector(
             0, 48.5, -1.5), axis=vector(0, 0, 3), radius=joint_radius) #diameter 2
 
-    # p5_y = l3.pos.y+(l3.height/2)+p5.radius*np.sin(90)
-    # p5_x = l1.pos.x*np.cos(90)
     print('p5_y: %f' % p5.pos.y)
     print('p5_x: %f' % p5.pos.x)
     # origin = sphere(pos=vector(0,0,0), radius=5, color = color.red)
