@@ -19,8 +19,8 @@ class Robot:
     def move(self, deg, deg2, deg3):
         # angle = rads(-deg)
         # print(f'deg: {deg}, deg2: {deg2}, deg3: {deg3}')
-        myStep = 0.007
-        # myStep = 0.01
+        # myStep = 0.007
+        myStep = 0.01
         deg = -1*deg
         axis_y = self.p2.pos.y
         axis_x = self.p2.pos.x

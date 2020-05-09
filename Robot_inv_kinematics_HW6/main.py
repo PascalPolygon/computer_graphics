@@ -6,9 +6,11 @@ import math
 from pathFinding import *
 from robot import *
 from linalg_utils import *
+from PIL import ImageGrab
+import os
+cwd = os.getcwd()
 
 scene = canvas()
-
 
 def init_linkage():
     joint_radius = 1
@@ -90,13 +92,8 @@ def main():
     e_c = np.array([0, 48.5])
     # g = np.array([35, 21])
     g = np.array([10, -21])
-    # g = np.array([15, -20])
-    # g = np.array([-10, -21])
     goal = sphere(pos=vector(g[0], g[1], -1.5), radius=1, color=color.green)
-
     # obs = np.array([[25, 31], [30, 19]])
-    # obs = np.array([[25, 31], [23, 41]])
-    # obs = np.array([[]])
     obs = np.array([[25, 31]])
     for i in range(obs.shape[0]):
         sphere(pos=vector(obs[i][0], obs[i][1], -1.5),
@@ -122,6 +119,10 @@ def main():
         # print(f'Go to: {phi_deg}')
         if (i % 20):
             myBot.move(-1*phi_deg[0], -1*phi_deg[1], -1*phi_deg[2])
+            # Video creation
+            # im = ImageGrab.grab((220,180,1880,1200))  # screen box from (0,0)-(500,500)
+            # # im.save(cwd+'frames\img-'+str(100+i)+'.png')  
+            # im.save('c:/computer_graphics/Robot_inv_kinematics_HW6/frames/img-'+str(100+i)+'.png') 
         i += 1
         e_c = e(phi, l)[:2]
         # print(e_c)

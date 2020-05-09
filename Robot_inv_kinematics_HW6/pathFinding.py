@@ -1,16 +1,13 @@
 import numpy as np
 
-
 def computeCost(X, Y, x_g, y_g):
     return np.sqrt(np.square(X-x_g) + np.square(Y-y_g))
-
 
 def gradientDesc(X, Y, x_g, y_g):
     d_g = computeCost(X, Y, x_g, y_g)  # euclidian distance to goal point
     dx = (X-x_g)/d_g
     dy = (Y-y_g)/d_g
     return np.array([dx, dy])
-
 
 def costWithObstables(X, Y, Obs, R=3):
     # obsField = np.zeros([100, 100])
@@ -22,7 +19,6 @@ def costWithObstables(X, Y, Obs, R=3):
         C_obs += 0 if d > R else np.log(R/d)
 
     return C_obs
-
 
 def cstrntCost(phi, sigma=10):
     C_cst = np.array([0.0, 0.0, 0.0])
@@ -40,7 +36,6 @@ def cstrntCost(phi, sigma=10):
             # print(f'Angles: {phi}, constraint: {C_cst}')
     return C_cst
 
-
 def gradWithCstrnt(phi, sigma=10):
     d_phi = np.array([0.0, 0.0, 0.0])
     _min = -160
@@ -53,10 +48,8 @@ def gradWithCstrnt(phi, sigma=10):
             d_phi[i] = - np.log(sigma)/(np.square(_max - phi[i]))
     return d_phi
 
-
 def gradDesc(g, e, beta=0.001):
     return beta*(g-e)
-
 
 def gradWithObst(g, o, e, R=3):
     # de = gradDesc(g, e)
