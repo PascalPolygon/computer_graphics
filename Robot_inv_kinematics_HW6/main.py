@@ -13,11 +13,11 @@ scene = canvas()
 def init_linkage():
     joint_radius = 1
 
-    platform = box(pos=vector(0, 0, 0), size=vector(
-        100, 3, 100), color=color.orange)
+    # platform = box(pos=vector(0, 0, 0), size=vector(
+    #     100, 3, 100), color=color.orange)
 
-    base = box(pos=vector(0, 6.5, 0), size=vector(
-        10, 10, 10), color=color.orange)  # 6.5 = 3/2 + 10/2
+    # base = box(pos=vector(0, 6.5, 0), size=vector(
+    #     10, 10, 10), color=color.orange)  # 6.5 = 3/2 + 10/2
 
     p2 = cylinder(pos=vector(
         0, 12.5, -1.5), axis=vector(0, 0, 3), radius=joint_radius)  # diameter 2
@@ -36,7 +36,7 @@ def init_linkage():
     l3 = box(pos=vector(0, 42.5, 0), size=vector(3, 10, 3), color=color.purple)
 
     p5 = cylinder(pos=vector(
-        0, 48.5, -1.5), axis=vector(0, 0, 3), radius=joint_radius, color=color.red, make_trail=True)  # diameter 2
+        0, 48.5, -1.5), axis=vector(0, 0, 3), radius=joint_radius, color=color.cyan, make_trail=True)  # diameter 2
 
     return p2, l1, p3, l2, p4, l3, p5
 
@@ -95,16 +95,30 @@ def cstrntCost(phi, sigma=10):
     C_cst = np.array([0.0, 0.0, 0.0])
     _min = -160
     _max = 160
+    print('###############_cstrntCost_################')
     for i in range(len(phi)):
         if _min < phi[i] and phi[i] <= _min+sigma:
-            C_cst[i] = np.log(sigma/(phi[i]-min))
+            C_cst[i] = np.log(sigma/(phi[i] - _min))
             print('###############################')
             print(f'Angles: {phi}, constraint: {C_cst}')
-        elif _max-sigma <= phi[i] < _max:
+        elif _max-sigma <= phi[i] and phi[i] < _max:
             C_cst[i] = np.log(sigma/(_max - phi[i]))
             print('###############################')
             print(f'Angles: {phi}, constraint: {C_cst}')
     return C_cst
+
+
+def gradWithCstrnt(phi, sigma=10):
+    d_phi = np.array([0.0, 0.0, 0.0])
+    _min = -160
+    _max = 160
+    print('###############_Angle Constraint Gradients_################')
+    for i in range(len(phi)):
+        if _min < phi[i] and phi[i] <= _min+sigma:
+            d_phi[i] = - np.log(sigma)/(np.square(phi[i] + _min))
+        elif _max-sigma <= phi[i] and phi[i] < _max:
+            d_phi[i] = - np.log(sigma)/(np.square(_max - phi[i]))
+    return d_phi
 
 
 def gradDesc(g, e, beta=0.001):
@@ -115,27 +129,18 @@ def gradWithObst(g, o, e, R=3):
     # de = gradDesc(g, e)
     de = gradientDesc(e[0], e[1], g[0], g[1])
     for i in range(0, o.shape[0]):
-        print(f'O shape: {o.shape}')
+        # print(f'O shape: {o.shape}')
         x_o = o[i][0]
         y_o = o[i][1]
         # d_o = euclDist(X, Y, x_o, y_o)  # euclidian distance to obstacle
-        # euclidian distance to obstacle
-        print('Calling')
-        print(x_o)
-        print(y_o)
         # C_o = costWithObstables(e[0], e[1], o[i])
         C_o = computeCost(e[0], e[1], x_o, y_o)
         # do = gradDesc(o[i], e)
         do = gradientDesc(e[0], e[1], x_o, y_o)
         # de[0] +=  0 if d_o > R else do
-        print(de)
-        print(do)
-        # de +=  0 if d_o > R else do
-        # de[0] +=  0 if C_o > R else -2*do[0]
-        # de[1] +=  0 if C_o > R else -2*do[1]
+        # print(de)
+        # print(do)
         de += 0 if C_o > R else -do
-        # de[0] += 0 if C_o > R else -((e[0]-x_o)/d_o)
-        # de[1] += 0 if C_o > R else -((e[1]-y_o)/d_o)
     return de
 
 
@@ -161,16 +166,18 @@ def main():
     # e_th = np.array([0, 48.5])
     e_c = np.array([0, 48.5])
     # g = np.array([35, 21])
-    g = np.array([0, -21])
+    g = np.array([10, -21])
+    # g = np.array([15, -20])
+    # g = np.array([-10, -21])
     goal = sphere(pos=vector(g[0], g[1], -1.5), radius=1, color=color.green)
 
     # obs = np.array([[25, 31], [30, 19]])
-    obs = np.array([[25, 31], [23, 41]])
+    # obs = np.array([[25, 31], [23, 41]])
     # obs = np.array([[]])
-    # obs = np.array([[25, 31]])
+    obs = np.array([[25, 31]])
     for i in range(obs.shape[0]):
         sphere(pos=vector(obs[i][0], obs[i][1], -1.5),
-               radius=1, color=color.blue)
+               radius=1, color=color.red)
     # obs = np.append(obs, [[o[0], o[1]]], axis=0)
     # obs = np.array([o])
     # print(obs[0])
@@ -188,7 +195,13 @@ def main():
         # de_th = beta*(g-e_th)
         # de_c = gradDesc(g,e_c)
         de_c = -0.1*gradWithObst(g, obs, e_c)
+        # angle step to take due to goal and obstacles
         d_phi = np.dot(J_pinv, de_c)
+        # angle step due to angle limitations
+        d_phi_cst = gradWithCstrnt(-1*degrees(phi), sigma=10)
+        print(f'd_phi: {d_phi} d_phi_cst: {d_phi_cst}')
+        # d_phi_cst[2] *= -1
+        # phi += (d_phi - d_phi_cst)
         phi += d_phi
         phi_deg = degrees(phi)
         print(f'Go to: {phi_deg}')
@@ -204,10 +217,11 @@ def main():
         C = computeCost(e_c[0], e_c[1], g[0], g[1])
         C_obs = costWithObstables(e_c[0], e_c[1], obs)
         C_cst = cstrntCost(-1*phi_deg)
-        C_total = C+C_obs
-        print(f'C_total: {C}')
-        print(f'C_obs: {C_obs}')
-        print(f'C_total: {C_total}')
+        C_cst = np.sum(C_cst)  # Sum cost due to each angle
+        C_total = C+C_obs+C_cst
+        # print(f'C_total: {C}')
+        # print(f'C_obs: {C_obs}')
+        # print(f'C_total: {C_total}')
         print(f'Angles: {-1*phi_deg}, constraint: {C_cst}')
         print('_____________________________')
 

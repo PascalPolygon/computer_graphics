@@ -18,14 +18,14 @@ class Robot:
 
     def move(self, deg, deg2, deg3):
         # angle = rads(-deg)
-        print(f'deg: {deg}, deg2: {deg2}, deg3: {deg3}')
-        # myStep = 0.003
-        myStep = 0.01
+        # print(f'deg: {deg}, deg2: {deg2}, deg3: {deg3}')
+        myStep = 0.007
+        # myStep = 0.01
         deg = -1*deg
         axis_y = self.p2.pos.y
         axis_x = self.p2.pos.x
         start = self.theta1
-        print("Theta 1: %d" % start)
+        # print("Theta 1: %d" % start)
         if deg < start:
             step = -myStep
         else:
@@ -86,7 +86,7 @@ class Robot:
             self.p5.pos.x = p5_pos[0]
             self.p5.pos.y = p5_pos[1]
             # print('deg: %f -> p5 x: %f, y: %f' % (i, p5_pos[0], p5_pos[1]))
-        print("### SECOND LOOP ###")
+        # print("### SECOND LOOP ###")
         deg = -1*deg2
         start = self.theta2
         if deg < start:
@@ -140,7 +140,7 @@ class Robot:
             self.p5.pos.y = p5_pos[1]
 
             # print('deg: %f -> p5 x: %f, y: %f' % (i, p5_pos[0], p5_pos[1]))
-        print("#### THIRD LOOP ###")
+        # print("#### THIRD LOOP ###")
         deg = -1*deg3
         start = self.theta3
         if deg < start:
