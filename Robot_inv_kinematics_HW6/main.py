@@ -70,89 +70,12 @@ def e(phi, l):
     return np.dot(T0_4, v)
 
 
-# def costWithObstables(X, Y, o, R=1):
-#     print(f'x_o: {o[0]}')
-#     print(f'y_o: {o[1]}')
-#     C_obs = 0
-#     d = computeCost(X, Y, o[0], o[1])
-#     C_obs += 0 if d > R else np.log(R/d)
-#     return C_obs
-
-
-def costWithObstables(X, Y, Obs, R=3):
-    # obsField = np.zeros([100, 100])
-    C_obs = 0
-    for i in range(0, Obs.shape[0]):
-        x_o = Obs[i][0]
-        y_o = Obs[i][1]
-        d = computeCost(X, Y, x_o, y_o)
-        C_obs += 0 if d > R else np.log(R/d)
-
-    return C_obs
-
-
-def cstrntCost(phi, sigma=10):
-    C_cst = np.array([0.0, 0.0, 0.0])
-    _min = -160
-    _max = 160
-    print('###############_cstrntCost_################')
-    for i in range(len(phi)):
-        if _min < phi[i] and phi[i] <= _min+sigma:
-            C_cst[i] = np.log(sigma/(phi[i] - _min))
-            print('###############################')
-            print(f'Angles: {phi}, constraint: {C_cst}')
-        elif _max-sigma <= phi[i] and phi[i] < _max:
-            C_cst[i] = np.log(sigma/(_max - phi[i]))
-            print('###############################')
-            print(f'Angles: {phi}, constraint: {C_cst}')
-    return C_cst
-
-
-def gradWithCstrnt(phi, sigma=10):
-    d_phi = np.array([0.0, 0.0, 0.0])
-    _min = -160
-    _max = 160
-    print('###############_Angle Constraint Gradients_################')
-    for i in range(len(phi)):
-        if _min < phi[i] and phi[i] <= _min+sigma:
-            d_phi[i] = - np.log(sigma)/(np.square(phi[i] + _min))
-        elif _max-sigma <= phi[i] and phi[i] < _max:
-            d_phi[i] = - np.log(sigma)/(np.square(_max - phi[i]))
-    return d_phi
-
-
-def gradDesc(g, e, beta=0.001):
-    return beta*(g-e)
-
-
-def gradWithObst(g, o, e, R=3):
-    # de = gradDesc(g, e)
-    de = gradientDesc(e[0], e[1], g[0], g[1])
-    for i in range(0, o.shape[0]):
-        # print(f'O shape: {o.shape}')
-        x_o = o[i][0]
-        y_o = o[i][1]
-        # d_o = euclDist(X, Y, x_o, y_o)  # euclidian distance to obstacle
-        # C_o = costWithObstables(e[0], e[1], o[i])
-        C_o = computeCost(e[0], e[1], x_o, y_o)
-        # do = gradDesc(o[i], e)
-        do = gradientDesc(e[0], e[1], x_o, y_o)
-        # de[0] +=  0 if d_o > R else do
-        # print(de)
-        # print(do)
-        de += 0 if C_o > R else -do
-    return de
-
-
 def main():
     print("Hello world!")
     # origin = sphere(pos=vector(0,0,0), radius=5, color = color.red)
     p2, l1, p3, l2, p4, l3, p5 = init_linkage()
     myBot = Robot(p2, l1, p3, l2, p4, l3, p5)
     print("Ready to boogy master chief!")
-    # x_g = 35
-    # y_g = 21
-
     phi1 = 0
     phi2 = 0
     phi3 = 0
@@ -178,11 +101,7 @@ def main():
     for i in range(obs.shape[0]):
         sphere(pos=vector(obs[i][0], obs[i][1], -1.5),
                radius=1, color=color.red)
-    # obs = np.append(obs, [[o[0], o[1]]], axis=0)
-    # obs = np.array([o])
-    # print(obs[0])
 
-    beta = 0.001
     i = 0
     C = computeCost(e_c[0], e_c[1], g[0], g[1])
     C_obs = costWithObstables(e_c[0], e_c[1], obs)
@@ -191,29 +110,21 @@ def main():
     while C_total > 0.5:
         J = jacobian(phi, l)
         J_pinv = np.linalg.pinv(J)
-        # de_c = beta*(g-e_c)
-        # de_th = beta*(g-e_th)
-        # de_c = gradDesc(g,e_c)
         de_c = -0.1*gradWithObst(g, obs, e_c)
         # angle step to take due to goal and obstacles
         d_phi = np.dot(J_pinv, de_c)
         # angle step due to angle limitations
         d_phi_cst = gradWithCstrnt(-1*degrees(phi), sigma=10)
-        print(f'd_phi: {d_phi} d_phi_cst: {d_phi_cst}')
-        # d_phi_cst[2] *= -1
-        # phi += (d_phi - d_phi_cst)
-        phi += d_phi
+        # print(f'd_phi: {d_phi} d_phi_cst: {d_phi_cst}')
+        phi += (d_phi - d_phi_cst)
+        # phi += d_phi
         phi_deg = degrees(phi)
-        print(f'Go to: {phi_deg}')
+        # print(f'Go to: {phi_deg}')
         if (i % 20):
             myBot.move(-1*phi_deg[0], -1*phi_deg[1], -1*phi_deg[2])
         i += 1
         e_c = e(phi, l)[:2]
-        # e_th+=de_th
-        # magic_p5.pos.x = e_c[0]
-        # magic_p5.pos.y = e_c[1]
-        print(e_c)
-        # print(e_th)
+        # print(e_c)
         C = computeCost(e_c[0], e_c[1], g[0], g[1])
         C_obs = costWithObstables(e_c[0], e_c[1], obs)
         C_cst = cstrntCost(-1*phi_deg)
@@ -221,8 +132,8 @@ def main():
         C_total = C+C_obs+C_cst
         # print(f'C_total: {C}')
         # print(f'C_obs: {C_obs}')
-        # print(f'C_total: {C_total}')
-        print(f'Angles: {-1*phi_deg}, constraint: {C_cst}')
+        print(f'End effector at: {e_c}, C_total: {C_total}')
+        # print(f'Angles: {-1*phi_deg}, constraint: {C_cst}')
         print('_____________________________')
 
 
